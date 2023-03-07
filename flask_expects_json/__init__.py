@@ -7,12 +7,20 @@ from jsonschema import validate, ValidationError, FormatChecker
 from .default_validator import ExtendedDefaultValidator
 
 
-def expects_json(schema=None, force=False, fill_defaults=False, ignore_for=None, check_formats=False):
+def expects_json(
+    schema=None,
+    force=False,
+    fill_defaults=False,
+    ignore_for=None,
+    check_formats=False,
+):
     if schema is None:
         schema = dict()
     if ignore_for is not None:
         if isinstance(ignore_for, str):
-            raise TypeError('Methods should be wrapped in an iterable. i.e. ignore_for=["GET"]')
+            raise TypeError(
+                'Methods should be wrapped in an iterable. i.e. ignore_for=["GET"]'
+            )
 
     def decorator(f):
         @wraps(f)
@@ -23,7 +31,7 @@ def expects_json(schema=None, force=False, fill_defaults=False, ignore_for=None,
             data = request.get_json(force=force)
 
             if data is None:
-                return abort(400, 'Failed to decode JSON object')
+                return abort(400, "Failed to decode JSON object")
 
             format_checker = None
 
@@ -33,11 +41,13 @@ def expects_json(schema=None, force=False, fill_defaults=False, ignore_for=None,
                 elif isinstance(check_formats, bool):
                     format_checker = FormatChecker()
                 else:
-                    return abort(400, 'check_format must be bool or iterable')
+                    return abort(400, "check_format must be bool or iterable")
 
             try:
                 if fill_defaults:
-                    ExtendedDefaultValidator(schema, format_checker=format_checker).validate(data)
+                    ExtendedDefaultValidator(
+                        schema, format_checker=format_checker
+                    ).validate(data)
                 else:
                     validate(data, schema, format_checker=format_checker)
             except ValidationError as e:
@@ -49,5 +59,7 @@ def expects_json(schema=None, force=False, fill_defaults=False, ignore_for=None,
                 return current_app.ensure_sync(f)(*args, **kwargs)
             else:
                 return f(*args, **kwargs)
+
         return decorated_function
+
     return decorator
